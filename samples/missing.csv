@@ -1,0 +1,7 @@
+id,nom,age,commentaire,colonne_vide,score
+1,Alice,28,,,
+2,,NA,Absent,,15.2
+3,Claire,,N/A,,NA
+4,David,N/A,À vérifier,,12.8
+5,Emma,30,NA,,N/A
+6,François,, ,,
