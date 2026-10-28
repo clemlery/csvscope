@@ -104,6 +104,35 @@ Ce fichier couvre :
 - une distribution non affichée alors qu'il y a exactement 20 valeurs distinctes (`product_name` : aucune valeur répétée),
 - une colonne `float` dont toutes les valeurs finissent par `.0`.
 
+# Partie 1 : nouvelles règles
+
+## samples/mixed_decimal.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 4 |
+| colonnes | 5 |
+| séparateur | `;` |
+| séparateur décimal | mixte (point, virgule) |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Séparateur décimal | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | | |
+| poids | float | | 0 (0.0 %) | 0 | virgule | 7.75 | 12.50 | 9.63 | |
+| taille | float | | 0 (0.0 %) | 0 | point | 1.62 | 1.90 | 1.77 | |
+| temperature | float | | 0 (0.0 %) | 0 | virgule | -3.50 | 2.00 | -0.56 | |
+| mesure | float | | 0 (0.0 %) | 0 | mixte (point, virgule) | 1.50 | 4.00 | 2.75 | |
+
+Ce fichier couvre :
+- un fichier dont les colonnes `float` utilisent des séparateurs décimaux différents (B1),
+- une colonne qui mélange elle-même point et virgule (`mesure`),
+- des décimaux négatifs (`temperature` : `-3,5`, `-1,25`) (B4),
+- des entiers valides dans une colonne `float` (`poids` : `10`, `temperature` : `2`) (B7),
+- l'arrondi au demi supérieur : moyenne de `poids` = 38.5 / 4 = 9.625 → `9.63` (B8).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
