@@ -101,7 +101,7 @@ Ce fichier couvre :
 Ce fichier couvre :
 - la règle identifiant par suffixe `_id` (`product_id`),
 - une distribution affichée, avec un tri alphabétique entre deux valeurs à égalité (`Electronics` et `Home Appliances`, 7 chacune),
-- une distribution non affichée alors qu'il y a exactement 20 valeurs distinctes (`product_name` : aucune valeur répétée),
+- une distribution non affichée parce qu'aucune valeur n'est répétée (`product_name`, 20 valeurs distinctes). La limite de 20 valeurs distinctes est testée dans `samples/many_values.csv`,
 - une colonne `float` dont toutes les valeurs finissent par `.0`.
 
 # Partie 1 : nouvelles règles
@@ -332,6 +332,30 @@ Ce fichier couvre :
 - les noms identifiants `uuid`, `identifier`, `identifiant`, et l'insensibilité à la casse (`UUID`, `Identifier`, `Client_ID`) (C5),
 - des identifiants de type `string`, sans distribution,
 - des noms qui ne sont pas des identifiants : `id_client` (commence par `id_`), `paid` (finit par `id` sans `_`) (C5).
+
+## samples/many_values.csv
+
+22 lignes. `code` vaut `V01` à `V21`, puis `V01` à la ligne 22. `groupe` vaut `G01` à `G20`, puis `G01` et `G02` aux lignes 21 et 22.
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 22 |
+| colonnes | 3 |
+| séparateur | `,` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| code | string | | 0 (0.0 %) | 0 | | | | non, 21 valeurs distinctes |
+| groupe | string | | 0 (0.0 %) | 0 | | | | oui : G01 2, G02 2, G03 1, G04 1, G05 1, G06 1, G07 1, G08 1, G09 1, G10 1, G11 1, G12 1, G13 1, G14 1, G15 1, G16 1, G17 1, G18 1, G19 1, G20 1 |
+
+Ce fichier couvre la limite de 20 valeurs distinctes (C9) :
+- `groupe` : exactement 20 valeurs distinctes, avec des répétitions, donc la distribution est affichée,
+- `code` : 21 valeurs distinctes, avec une répétition, donc on affiche seulement le nombre de valeurs distinctes.
 
 # Rendu texte
 
