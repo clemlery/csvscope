@@ -1,0 +1,21 @@
+product_id,category_name,product_name,price
+1,Electronics,Smartphone,500.0
+2,Electronics,Laptop,1000.0
+3,Home Appliances,Refrigerator,800.0
+4,Home Appliances,Washing Machine,600.0
+5,Furniture,Sofa,400.0
+6,Furniture,Dining Table,300.0
+7,Electronics,Tablet,200.0
+8,Furniture,Bed,500.0
+9,Home Appliances,Microwave,150.0
+10,Electronics,Headphones,100.0
+11,Home Appliances,Air Conditioner,300.0
+12,Electronics,Smartwatch,250.0
+13,Furniture,Bookshelf,150.0
+14,Home Appliances,Coffee Maker,100.0
+15,Furniture,TV Stand,200.0
+16,Electronics,Camera,400.0
+17,Home Appliances,Vacuum Cleaner,120.0
+18,Furniture,Armchair,250.0
+19,Electronics,Router,50.0
+20,Home Appliances,Blender,80.0
