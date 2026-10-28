@@ -250,6 +250,37 @@ Ce fichier couvre : un en-tête sans ligne de données. Les taux valent 0.0 % (p
 
 `samples/empty.csv` fait 0 octet. `samples/inexistant.csv` n'existe pas et ne doit pas être créé. Dans les deux cas, rien n'est écrit sur la sortie standard (B12).
 
+# Partie 2 : règles qui n'étaient pas couvertes
+
+## samples/invalid.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 5 |
+| colonnes | 7 |
+| séparateur | `,` |
+| séparateur décimal | point |
+| format de date | AAAA-MM-JJ |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| quantite | integer | | 0 (0.0 %) | 1 | -4 | 10 | 5.00 | |
+| prix | float | | 0 (0.0 %) | 1 | 1.00 | 4.00 | 2.75 | |
+| lot | integer | | 0 (0.0 %) | 2 | 7 | 9 | 8.00 | |
+| code | string | | 1 (20.0 %) | 0 | | | | non, 4 valeurs distinctes |
+| jour | string | | 1 (20.0 %) | 0 | | | | non, 4 valeurs distinctes |
+| livraison | date | | 0 (0.0 %) | 1 | 2026-01-10 | 2026-05-20 | | |
+
+Ce fichier couvre :
+- des valeurs invalides exclues des statistiques : `abc` dans `quantite`, `x` dans `prix`, `X1` et `Y2` dans `lot` (C1),
+- le seuil de 50 % : `lot` a 3 nombres sur 5 (60 %), donc il est `integer`. `code` a 2 nombres sur 4 valeurs non manquantes (50 % exactement), donc il est `string`. `jour` a 2 dates sur 4 (50 %), donc il est `string` (C2),
+- un entier négatif (`-4`) (C6),
+- une date bien formée mais qui n'existe pas (`2026-02-30`), invalide dans `livraison` (C7),
+- un entier (`4`) valide dans une colonne `float` (C11).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
