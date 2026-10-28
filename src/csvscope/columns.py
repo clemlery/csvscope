@@ -2,6 +2,14 @@
 
 from collections.abc import Iterable
 
+from csvscope.values import DATE_FORMATS, parse_date, parse_decimal, parse_integer
+
+INTEGER = "integer"
+FLOAT = "float"
+DATE = "date"
+STRING = "string"
+UNKNOWN = "unknown"
+
 IDENTIFIER = "identifiant"
 IDENTIFIER_NAMES = frozenset({"id", "uuid", "identifier", "identifiant"})
 IDENTIFIER_SUFFIX = "_id"
@@ -24,3 +32,46 @@ def describe_mix(found: Iterable[str], order: tuple[str, ...]) -> str:
     if len(present) == 1:
         return present[0]
     return f"mixte ({', '.join(present)})"
+
+
+def _is_majority(count: int, total: int) -> bool:
+    """Vrai si count représente strictement plus de 50 % de total."""
+    return count * 2 > total
+
+
+def date_formats(values: list[str]) -> list[str]:
+    """Renvoie les formats des valeurs qui sont des dates, dans l'ordre fixe."""
+    found = set()
+    for value in values:
+        parsed = parse_date(value)
+        if parsed is not None:
+            found.add(parsed[1])
+    return [label for label in DATE_FORMATS if label in found]
+
+
+def mixed_date_formats(values: list[str]) -> list[str]:
+    """Renvoie les formats trouvés si plus de 50 % des valeurs sont des dates
+    dans plusieurs formats, sinon une liste vide.
+    """
+    dates = sum(1 for value in values if parse_date(value) is not None)
+    formats = date_formats(values)
+    if _is_majority(dates, len(values)) and len(formats) > 1:
+        return formats
+    return []
+
+
+def infer_type(values: list[str], allow_comma: bool) -> str:
+    """Infère le type d'une colonne à partir de ses valeurs non manquantes."""
+    if not values:
+        return UNKNOWN
+
+    integers = sum(1 for value in values if parse_integer(value) is not None)
+    decimals = sum(1 for value in values if parse_decimal(value, allow_comma) is not None)
+    if _is_majority(integers + decimals, len(values)):
+        return FLOAT if decimals else INTEGER
+
+    dates = sum(1 for value in values if parse_date(value) is not None)
+    if _is_majority(dates, len(values)):
+        return DATE if len(date_formats(values)) == 1 else STRING
+
+    return STRING
