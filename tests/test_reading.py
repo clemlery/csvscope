@@ -1,6 +1,17 @@
+from pathlib import Path
+
 import pytest
 
-from csvscope.reading import detect_separator, fit_row, split_rows
+from csvscope.reading import (
+    EmptyFileError,
+    detect_separator,
+    fit_row,
+    read_table,
+    read_text,
+    split_rows,
+)
+
+SAMPLES = Path(__file__).resolve().parent.parent / "samples"
 
 
 # Découpage des lignes
@@ -73,3 +84,76 @@ def test_detect_breaks_ties_with_fixed_order():
 
 def test_detect_with_header_only():
     assert detect_separator("id;nom;valeur\n") == ";"
+
+
+@pytest.mark.parametrize(
+    ("sample", "expected"),
+    [
+        ("clean.csv", ","),
+        ("fr_export.csv", ";"),
+        ("mixed_decimal.csv", ";"),
+        ("ragged.csv", ","),
+        ("bom.csv", ";"),
+        ("single_column.csv", ","),
+        ("header_only.csv", ","),
+        ("tabulation.csv", "\t"),
+        ("pipe.csv", "|"),
+        ("quoted_comma.csv", ","),
+    ],
+)
+def test_detect_separator_of_samples(sample, expected):
+    assert detect_separator(read_text(str(SAMPLES / sample))) == expected
+
+
+# Lecture du fichier
+
+
+def test_read_text_removes_bom():
+    text = read_text(str(SAMPLES / "bom.csv"))
+    assert text.startswith("id;valeur")
+
+
+def test_read_text_raises_when_file_is_missing(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        read_text(str(tmp_path / "inexistant.csv"))
+
+
+def test_read_table_of_ragged_file():
+    separator, header, rows = read_table(str(SAMPLES / "ragged.csv"))
+    assert separator == ","
+    assert header == ["id", "nom", "age"]
+    assert rows == [
+        ["1", "Alice", "28"],
+        ["2", "Benoit", ""],
+        ["3", "Claire", "22"],
+        ["4", "David ", " 41"],
+    ]
+
+
+def test_read_table_header_without_bom():
+    _, header, _ = read_table(str(SAMPLES / "bom.csv"))
+    assert header == ["id", "valeur"]
+
+
+def test_read_table_strips_column_names(tmp_path):
+    path = tmp_path / "noms.csv"
+    path.write_text(" id , nom \n1,Alice\n", encoding="utf-8")
+    _, header, _ = read_table(str(path))
+    assert header == ["id", "nom"]
+
+
+def test_read_table_of_header_only_file():
+    separator, header, rows = read_table(str(SAMPLES / "header_only.csv"))
+    assert (separator, header, rows) == (",", ["id", "nom", "valeur"], [])
+
+
+def test_read_table_raises_on_empty_file():
+    with pytest.raises(EmptyFileError):
+        read_table(str(SAMPLES / "empty.csv"))
+
+
+def test_read_table_raises_on_blank_lines_only(tmp_path):
+    path = tmp_path / "vide.csv"
+    path.write_text("\n\n", encoding="utf-8")
+    with pytest.raises(EmptyFileError):
+        read_table(str(path))
