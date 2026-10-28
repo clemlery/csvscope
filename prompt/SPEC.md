@@ -7,7 +7,11 @@ Conventions :
 - Une cellule est soit manquante, soit invalide, soit valide. Jamais deux à la fois : une cellule manquante n'est jamais comptée comme invalide.
 - Pour chaque colonne : lignes = manquantes + invalides + valides.
 - Min et max des colonnes `float` : 2 décimales. Moyenne : toujours 2 décimales.
+- Arrondis au demi supérieur (`0.125` → `0.13`), pas à l'arrondi bancaire de `round()`.
 - Dates écrites en AAAA-MM-JJ, quel que soit le format du fichier.
+- Les colonnes supplémentaires des tableaux (`Séparateur décimal`, `Format de date`, `Remarque`) ne sont présentes que pour les fichiers où elles s'appliquent. Une case vide signifie que l'information n'est pas affichée.
+
+# Fichiers d'origine
 
 ## samples/clean.csv
 
@@ -100,6 +104,8 @@ Ce fichier couvre :
 - une distribution non affichée alors qu'il y a exactement 20 valeurs distinctes (`product_name` : aucune valeur répétée),
 - une colonne `float` dont toutes les valeurs finissent par `.0`.
 
+# Rendu texte
+
 ## Rendu texte attendu pour samples/clean.csv
 
 ```text
@@ -146,7 +152,9 @@ Format de date     : AAAA-MM-JJ
   Plus récente  : 2026-05-30
 ```
 
-Exemple de distribution (forme attendue quand elle est affichée), ici pour `category_name` :
+## Formes attendues des autres éléments
+
+Distribution, quand elle est affichée (ici pour `category_name`). Elle remplace la ligne `Distincts` :
 
 ```text
   Distribution :
@@ -154,3 +162,4 @@ Exemple de distribution (forme attendue quand elle est affichée), ici pour `cat
     Home Appliances : 7
     Furniture : 6
 ```
+
