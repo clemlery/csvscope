@@ -1,4 +1,6 @@
-from csvscope.reading import fit_row, split_rows
+import pytest
+
+from csvscope.reading import detect_separator, fit_row, split_rows
 
 
 # Découpage des lignes
@@ -31,3 +33,43 @@ def test_fit_row_truncates_long_row():
 
 def test_fit_row_keeps_row_of_right_width():
     assert fit_row(["1", "Alice", "28"], 3) == ["1", "Alice", "28"]
+
+
+# Séparateur de colonnes
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a,b\n1,2\n", ","),
+        ("a;b\n1;2\n", ";"),
+        ("a\tb\n1\t2\n", "\t"),
+        ("a|b\n1|2\n", "|"),
+    ],
+)
+def test_detect_each_separator(text, expected):
+    assert detect_separator(text) == expected
+
+
+def test_detect_defaults_to_comma_when_header_is_not_split():
+    assert detect_separator("valeur\n10\n20\n") == ","
+
+
+def test_detect_ignores_candidate_that_does_not_split_header():
+    # La virgule apparaît dans les données mais pas dans l'en-tête.
+    assert detect_separator("id;prix\n1;8,99\n2;249,90\n") == ";"
+
+
+def test_detect_prefers_most_matching_rows():
+    # "," découpe l'en-tête en 2 champs mais aucune ligne de données.
+    assert detect_separator("a;b,c\n1;2\n3;4\n") == ";"
+
+
+def test_detect_breaks_ties_with_fixed_order():
+    assert detect_separator("a,b;c\n1,2;3\n") == ","
+    assert detect_separator("a;b\tc\n1;2\t3\n") == ";"
+    assert detect_separator("a\tb|c\n1\t2|3\n") == "\t"
+
+
+def test_detect_with_header_only():
+    assert detect_separator("id;nom;valeur\n") == ";"
