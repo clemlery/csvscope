@@ -158,6 +158,30 @@ Ce fichier couvre :
 - la forme stricte des dates : `2026-1-5` n'est pas une date, donc c'est une valeur invalide dans `debut` (B6),
 - un fichier sans valeur décimale (séparateur décimal `aucun`).
 
+## samples/ragged.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 4 |
+| colonnes | 3 |
+| séparateur | `,` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| nom | string | | 0 (0.0 %) | 0 | | | | non, 4 valeurs distinctes |
+| age | integer | | 1 (25.0 %) | 0 | 22 | 41 | 30.33 | |
+
+Ce fichier couvre :
+- une ligne trop courte (ligne 2) : le champ absent compte comme manquant (B12),
+- une ligne trop longue (ligne 3) : le champ en trop (`extra`) est ignoré (B12),
+- la détection du séparateur malgré des lignes de longueurs différentes (B11),
+- la suppression des espaces avant l'analyse du type et des valeurs : `David ` → `David`, ` 41` → `41` (B5).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
