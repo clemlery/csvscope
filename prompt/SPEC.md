@@ -182,6 +182,27 @@ Ce fichier couvre :
 - la détection du séparateur malgré des lignes de longueurs différentes (B11),
 - la suppression des espaces avant l'analyse du type et des valeurs : `David ` → `David`, ` 41` → `41` (B5).
 
+## samples/bom.csv
+
+Fichier UTF-8 commençant par un BOM (`EF BB BF`).
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 2 |
+| colonnes | 2 |
+| séparateur | `;` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| valeur | integer | | 0 (0.0 %) | 0 | 3 | 5 | 4.00 | |
+
+Ce fichier couvre : le retrait du BOM. Le nom de la première colonne est `id`, pas `﻿id`, donc elle est reconnue comme identifiant (B12).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
