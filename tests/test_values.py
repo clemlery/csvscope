@@ -1,11 +1,15 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
 
 from csvscope.values import (
     COMMA,
+    FR_DATE,
+    ISO_DATE,
     POINT,
     is_missing,
+    parse_date,
     parse_decimal,
     parse_integer,
 )
@@ -80,3 +84,36 @@ def test_comma_refused_when_not_allowed():
 )
 def test_not_decimals(value):
     assert parse_decimal(value, allow_comma=True) is None
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("2026-01-15", (date(2026, 1, 15), ISO_DATE)),
+        ("15/01/2026", (date(2026, 1, 15), FR_DATE)),
+        ("2024-02-29", (date(2024, 2, 29), ISO_DATE)),
+    ],
+)
+def test_dates(value, expected):
+    assert parse_date(value) == expected
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-1-5",
+        "5/1/2026",
+        "2026-02-30",
+        "30/02/2026",
+        "2025-02-29",
+        "01/15/2026",
+        "2026/01/15",
+        "15-01-2026",
+        "20260115",
+        "2026-01-15T10:00",
+        "２０２６-01-15",
+        "abc",
+    ],
+)
+def test_not_dates(value):
+    assert parse_date(value) is None
