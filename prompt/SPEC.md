@@ -241,6 +241,15 @@ Ce fichier couvre : aucun séparateur ne donne plus d'une colonne, donc on retie
 
 Ce fichier couvre : un en-tête sans ligne de données. Les taux valent 0.0 % (pas de division par zéro) (B12).
 
+## Erreurs
+
+| Commande | Code de sortie | Message sur la sortie d'erreur |
+| --- | --- | --- |
+| `csvscope samples/empty.csv` | 1 | `Erreur : fichier vide : samples/empty.csv` |
+| `csvscope samples/inexistant.csv` | 1 | `Erreur : fichier introuvable : samples/inexistant.csv` |
+
+`samples/empty.csv` fait 0 octet. `samples/inexistant.csv` n'existe pas et ne doit pas être créé. Dans les deux cas, rien n'est écrit sur la sortie standard (B12).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
