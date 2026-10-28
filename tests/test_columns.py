@@ -9,12 +9,14 @@ from csvscope.columns import (
     INTEGER,
     STRING,
     UNKNOWN,
+    analyze_column,
     date_formats,
     date_stats,
     decimal_separator,
     describe_mix,
     infer_type,
     is_identifier,
+    missing_rate,
     mixed_date_formats,
     numeric_stats,
     split_valid,
@@ -270,3 +272,101 @@ def test_string_stats_with_20_distinct_values():
 def test_string_stats_with_21_distinct_values():
     values = [f"V{i:02d}" for i in range(1, 22)] + ["V01"]
     assert string_stats(values) == {"distinct": 21, "distribution": None}
+
+
+# Taux de valeurs manquantes
+
+
+@pytest.mark.parametrize(
+    ("missing", "row_count", "expected"),
+    [(0, 5, 0.0), (1, 6, 16.7), (4, 6, 66.7), (5, 6, 83.3), (6, 6, 100.0), (1, 4, 25.0)],
+)
+def test_missing_rate(missing, row_count, expected):
+    assert missing_rate(missing, row_count) == expected
+
+
+def test_missing_rate_without_rows():
+    assert missing_rate(0, 0) == 0.0
+
+
+# Analyse d'une colonne
+
+
+def test_analyze_integer_column_strips_values():
+    column = analyze_column("age", ["28", "", "22", " 41"], allow_comma=True)
+    assert column == {
+        "name": "age",
+        "type": INTEGER,
+        "role": None,
+        "missing": 1,
+        "missing_rate": 25.0,
+        "invalid": 0,
+        "decimal_separator": None,
+        "date_format": None,
+        "mixed_date_formats": [],
+        "min": 22,
+        "max": 41,
+        "mean": pytest.approx(91 / 3),
+        "distinct": None,
+        "distribution": None,
+    }
+
+
+def test_analyze_missing_markers():
+    values = ["NULL", "none", "bien", "na", "ABSENT", " n/a "]
+    column = analyze_column("note", values, allow_comma=True)
+    assert (column["missing"], column["missing_rate"]) == (5, 83.3)
+
+
+def test_analyze_float_column():
+    column = analyze_column("poids", ["12,5", "8,25", "10", "7,75"], allow_comma=True)
+    assert column["type"] == FLOAT
+    assert column["decimal_separator"] == "virgule"
+    assert (column["min"], column["max"], column["mean"]) == (7.75, 12.5, 9.625)
+
+
+def test_analyze_date_column():
+    values = ["2026-01-15", "2026-03-10", "2025-12-01", "2026-02-28", "2026-1-5"]
+    column = analyze_column("debut", values, allow_comma=True)
+    assert column["type"] == DATE
+    assert column["invalid"] == 1
+    assert column["date_format"] == "AAAA-MM-JJ"
+    assert (column["min"], column["max"]) == (date(2025, 12, 1), date(2026, 3, 10))
+    assert column["mean"] is None
+
+
+def test_analyze_string_column_with_mixed_dates():
+    values = ["2026-03-01", "05/03/2026", "2026-03-20", "10/03/2026", "2026-04-02"]
+    column = analyze_column("evenement", values, allow_comma=True)
+    assert column["type"] == STRING
+    assert column["mixed_date_formats"] == ["AAAA-MM-JJ", "JJ/MM/AAAA"]
+    assert column["date_format"] is None
+    assert (column["distinct"], column["distribution"]) == (5, None)
+
+
+def test_analyze_identifier_column_has_no_stats():
+    column = analyze_column("id", ["1", "2", "3"], allow_comma=True)
+    assert column["type"] == INTEGER
+    assert column["role"] == "identifiant"
+    assert [column[key] for key in ("min", "max", "mean", "distinct", "distribution")] == [
+        None
+    ] * 5
+
+
+def test_analyze_string_identifier_has_no_distinct():
+    column = analyze_column("UUID", ["a1", "b2", "c3"], allow_comma=True)
+    assert (column["type"], column["role"]) == (STRING, "identifiant")
+    assert (column["distinct"], column["distribution"]) == (None, None)
+
+
+def test_analyze_unknown_column():
+    column = analyze_column("colonne_vide", ["", "NA", " "], allow_comma=True)
+    assert column["type"] == UNKNOWN
+    assert (column["missing"], column["missing_rate"], column["invalid"]) == (3, 100.0, 0)
+    assert column["distinct"] is None
+
+
+def test_analyze_column_without_rows():
+    column = analyze_column("valeur", [], allow_comma=True)
+    assert column["type"] == UNKNOWN
+    assert (column["missing"], column["missing_rate"]) == (0, 0.0)

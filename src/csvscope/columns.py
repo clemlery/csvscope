@@ -5,9 +5,11 @@ from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
 
+from csvscope.rounding import round_half_up
 from csvscope.values import (
     DATE_FORMATS,
     DECIMAL_SEPARATORS,
+    is_missing,
     parse_date,
     parse_decimal,
     parse_integer,
@@ -158,3 +160,51 @@ def string_stats(values: list[str]) -> dict:
     if len(counts) <= DISTRIBUTION_MAX_VALUES and any(n > 1 for n in counts.values()):
         distribution = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return {"distinct": len(counts), "distribution": distribution}
+
+
+def missing_rate(missing: int, row_count: int) -> float:
+    """Taux de valeurs manquantes en pourcentage, arrondi à une décimale."""
+    if row_count == 0:
+        return 0.0
+    return float(round_half_up(Decimal(missing * 100) / Decimal(row_count), 1))
+
+
+def analyze_column(name: str, raw_values: list[str], allow_comma: bool) -> dict:
+    """Analyse une colonne à partir de ses valeurs brutes, une par ligne de données."""
+    cleaned = [value.strip() for value in raw_values]
+    present = [value for value in cleaned if not is_missing(value)]
+    column_type = infer_type(present, allow_comma)
+    identifier = is_identifier(name)
+    valid, invalid = split_valid(present, column_type, allow_comma)
+    missing = len(cleaned) - len(present)
+
+    column = {
+        "name": name,
+        "type": column_type,
+        "role": IDENTIFIER if identifier else None,
+        "missing": missing,
+        "missing_rate": missing_rate(missing, len(cleaned)),
+        "invalid": invalid,
+        "decimal_separator": None,
+        "date_format": None,
+        "mixed_date_formats": mixed_date_formats(present),
+        "min": None,
+        "max": None,
+        "mean": None,
+        "distinct": None,
+        "distribution": None,
+    }
+    if column_type == FLOAT:
+        column["decimal_separator"] = decimal_separator(present, allow_comma)
+    if column_type == DATE:
+        column["date_format"] = date_formats(present)[0]
+
+    if identifier:
+        return column
+    if column_type in (INTEGER, FLOAT):
+        column.update(numeric_stats(valid, column_type))
+    elif column_type == DATE:
+        column.update(date_stats(valid))
+    elif column_type == STRING:
+        column.update(string_stats(valid))
+    return column
