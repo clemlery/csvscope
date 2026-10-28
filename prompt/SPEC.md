@@ -281,6 +281,31 @@ Ce fichier couvre :
 - une date bien formée mais qui n'existe pas (`2026-02-30`), invalide dans `livraison` (C7),
 - un entier (`4`) valide dans une colonne `float` (C11).
 
+## samples/tabulation.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 6 |
+| colonnes | 3 |
+| séparateur | tabulation |
+| séparateur décimal | virgule |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| mesure | float | | 3 (50.0 %) | 0 | 1.50 | 3.25 | 2.42 | |
+| note | string | | 4 (66.7 %) | 0 | | | | oui : bien 2 |
+
+Ce fichier couvre :
+- le séparateur tabulation, avec la virgule décimale (C4),
+- les marqueurs `NULL` et `None`, l'insensibilité à la casse (`none`, `na`, `ABSENT`) et les espaces autour d'un marqueur (` n/a `) (C8),
+- une distribution affichée avec une seule valeur distincte répétée.
+
+Dans le rendu texte, le séparateur s'affiche sous la forme `tabulation`.
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
@@ -338,5 +363,11 @@ Distribution, quand elle est affichée (ici pour `category_name`). Elle remplace
     Electronics : 7
     Home Appliances : 7
     Furniture : 6
+```
+
+Séparateur tabulation :
+
+```text
+Séparateur         : tabulation
 ```
 
