@@ -11,10 +11,55 @@ from csvscope.render import (
     format_number,
     format_remark,
     format_separator,
+    render_column,
     render_file,
+    render_report,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
+
+CLEAN_REPORT = """\
+Fichier            : samples/clean.csv
+Lignes             : 5
+Colonnes           : 5
+Séparateur         : ,
+Séparateur décimal : point
+Format de date     : AAAA-MM-JJ
+
+[id]
+  Type        : integer
+  Rôle        : identifiant
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+
+[nom]
+  Type        : string
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Distincts   : 5
+
+[age]
+  Type        : integer
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Min         : 22
+  Max         : 41
+  Moyenne     : 31.00
+
+[score]
+  Type        : float
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Min         : 9.40
+  Max         : 18.90
+  Moyenne     : 14.54
+
+[date_inscription]
+  Type        : date
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Plus ancienne : 2026-01-15
+  Plus récente  : 2026-05-30"""
 
 
 @pytest.fixture
@@ -25,6 +70,12 @@ def at_root(monkeypatch):
 
 def analyze(name):
     return analyze_file(f"samples/{name}")
+
+
+def column_block(name, column_name):
+    file_info, columns = analyze(name)
+    column = next(c for c in columns if c["name"] == column_name)
+    return "\n".join(render_column(column, file_info))
 
 
 # Mise en forme des valeurs
@@ -85,3 +136,91 @@ def test_header_of_mixed_files(at_root):
 
 def test_header_with_tab_separator(at_root):
     assert render_file(analyze("tabulation.csv")[0])[3] == "Séparateur         : tabulation"
+
+
+# Blocs de colonnes
+
+
+def test_distribution_replaces_distinct_line(at_root):
+    assert column_block("product_categories.csv", "category_name") == """\
+[category_name]
+  Type        : string
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Distribution :
+    Electronics : 7
+    Home Appliances : 7
+    Furniture : 6"""
+
+
+def test_decimal_separator_line_when_file_is_mixed(at_root):
+    assert column_block("mixed_decimal.csv", "poids") == """\
+[poids]
+  Type        : float
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Séparateur décimal : virgule
+  Min         : 7.75
+  Max         : 12.50
+  Moyenne     : 9.63"""
+
+
+def test_date_format_line_when_file_is_mixed(at_root):
+    assert column_block("mixed_dates.csv", "fin") == """\
+[fin]
+  Type        : date
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Format de date : JJ/MM/AAAA
+  Plus ancienne : 2025-12-31
+  Plus récente  : 2026-04-20"""
+
+
+def test_remark_line(at_root):
+    assert column_block("mixed_dates.csv", "evenement") == """\
+[evenement]
+  Type        : string
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Remarque    : dates dans plusieurs formats (AAAA-MM-JJ, JJ/MM/AAAA), colonne traitée comme string
+  Distincts   : 5"""
+
+
+def test_no_mixed_lines_when_file_is_not_mixed(at_root):
+    block = column_block("fr_export.csv", "prix")
+    assert "Séparateur décimal" not in block
+    block = column_block("fr_export.csv", "date_vente")
+    assert "Format de date" not in block
+
+
+def test_string_identifier_has_no_stats(at_root):
+    assert column_block("pipe.csv", "UUID") == """\
+[UUID]
+  Type        : string
+  Rôle        : identifiant
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0"""
+
+
+def test_unknown_column_has_no_stats(at_root):
+    assert column_block("missing.csv", "colonne_vide") == """\
+[colonne_vide]
+  Type        : unknown
+  Manquantes  : 6 (100.0 %)
+  Invalides   : 0"""
+
+
+def test_no_markdown_in_reports(at_root):
+    names = sorted(p.name for p in (ROOT / "samples").glob("*.csv") if p.name != "empty.csv")
+    for name in names:
+        report = render_report(*analyze(name))
+        assert "**" not in report and "<br>" not in report, name
+        # Le séparateur | peut apparaître comme valeur, jamais comme bord de tableau.
+        assert not any(line.lstrip().startswith("|") for line in report.splitlines()), name
+
+
+# Rapport complet
+
+
+def test_full_report_of_clean_file(at_root):
+    assert render_report(*analyze("clean.csv")) == CLEAN_REPORT
