@@ -65,10 +65,15 @@ Conventions :
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
 | nom | string | | 1 (16.7 %) | 0 | | | | non, 5 valeurs distinctes |
-| age | integer | | 4 | 0 | 28 | 30 | 29.00 | |
-| commentaire | string | | 4 | 0 | | | | non, 2 valeurs distinctes |
+| age | integer | | 4 (66.7 %) | 0 | 28 | 30 | 29.00 | |
+| commentaire | string | | 5 (83.3 %) | 0 | | | | non, 1 valeur distincte |
 | colonne_vide | unknown | | 6 (100.0 %) | 0 | | | | |
-| score | float | | 4 | 0 | 12.80 | 15.20 | 14.00 | |
+| score | float | | 4 (66.7 %) | 0 | 12.80 | 15.20 | 14.00 | |
+
+Ce fichier couvre :
+- les marqueurs `NA`, `N/A`, `Absent` et la cellule vide,
+- une cellule ne contenant qu'un espace (`commentaire`, ligne 6), manquante après suppression des espaces,
+- une colonne entièrement vide (`unknown`).
 
 ## samples/product_categories.csv
 
