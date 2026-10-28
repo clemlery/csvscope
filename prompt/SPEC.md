@@ -306,6 +306,33 @@ Ce fichier couvre :
 
 Dans le rendu texte, le séparateur s'affiche sous la forme `tabulation`.
 
+## samples/pipe.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 3 |
+| colonnes | 6 |
+| séparateur | `\|` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| UUID | string | identifiant | 0 (0.0 %) | 0 | | | | |
+| Identifier | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| identifiant | string | identifiant | 0 (0.0 %) | 0 | | | | |
+| Client_ID | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| id_client | integer | | 0 (0.0 %) | 0 | 5 | 7 | 6.00 | |
+| paid | integer | | 0 (0.0 %) | 0 | 0 | 1 | 0.67 | |
+
+Ce fichier couvre :
+- le séparateur `|` (C4),
+- les noms identifiants `uuid`, `identifier`, `identifiant`, et l'insensibilité à la casse (`UUID`, `Identifier`, `Client_ID`) (C5),
+- des identifiants de type `string`, sans distribution,
+- des noms qui ne sont pas des identifiants : `id_client` (commence par `id_`), `paid` (finit par `id` sans `_`) (C5).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
