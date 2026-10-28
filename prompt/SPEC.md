@@ -221,6 +221,26 @@ Ce fichier couvre : le retrait du BOM. Le nom de la première colonne est `id`, 
 
 Ce fichier couvre : aucun séparateur ne donne plus d'une colonne, donc on retient `,` par défaut (B11).
 
+## samples/header_only.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 0 |
+| colonnes | 3 |
+| séparateur | `,` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | unknown | identifiant | 0 (0.0 %) | 0 | | | | |
+| nom | unknown | | 0 (0.0 %) | 0 | | | | |
+| valeur | unknown | | 0 (0.0 %) | 0 | | | | |
+
+Ce fichier couvre : un en-tête sans ligne de données. Les taux valent 0.0 % (pas de division par zéro) (B12).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
