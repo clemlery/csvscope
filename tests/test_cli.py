@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -35,3 +38,29 @@ def test_missing_file(capsys):
     assert captured.out == ""
     assert captured.err == "Erreur : fichier introuvable : samples/inexistant.csv\n"
     assert not Path("samples/inexistant.csv").exists()
+
+
+def run_module(*args):
+    env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+    return subprocess.run(
+        [sys.executable, "-m", "csvscope", *args],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def test_python_m_csvscope_prints_report():
+    result = run_module("samples/bom.csv")
+    assert result.returncode == 0
+    assert result.stdout.startswith("Fichier            : samples/bom.csv\n")
+    assert result.stderr == ""
+
+
+def test_python_m_csvscope_exit_code_on_error():
+    result = run_module("samples/empty.csv")
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert result.stderr == "Erreur : fichier vide : samples/empty.csv\n"
