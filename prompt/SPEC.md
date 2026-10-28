@@ -357,6 +357,29 @@ Ce fichier couvre la limite de 20 valeurs distinctes (C9) :
 - `groupe` : exactement 20 valeurs distinctes, avec des répétitions, donc la distribution est affichée,
 - `code` : 21 valeurs distinctes, avec une répétition, donc on affiche seulement le nombre de valeurs distinctes.
 
+## samples/quoted_comma.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 3 |
+| colonnes | 3 |
+| séparateur | `,` |
+| séparateur décimal | point |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | |
+| montant | float | | 0 (0.0 %) | 1 | 7.25 | 10.50 | 8.88 | |
+| libelle | string | | 0 (0.0 %) | 0 | | | | non, 3 valeurs distinctes |
+
+Ce fichier couvre :
+- la virgule refusée comme séparateur décimal quand le séparateur du fichier est `,` : `"12,5"` est invalide (C10),
+- des champs entre guillemets contenant le séparateur (`"Dupont, Jean"`),
+- l'arrondi au demi supérieur : (10.5 + 7.25) / 2 = 8.875 → `8.88`.
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
