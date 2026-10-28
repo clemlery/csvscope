@@ -133,6 +133,31 @@ Ce fichier couvre :
 - des entiers valides dans une colonne `float` (`poids` : `10`, `temperature` : `2`) (B7),
 - l'arrondi au demi supérieur : moyenne de `poids` = 38.5 / 4 = 9.625 → `9.63` (B8).
 
+## samples/mixed_dates.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 5 |
+| colonnes | 4 |
+| séparateur | `,` |
+| séparateur décimal | aucun |
+| format de date | mixte (AAAA-MM-JJ, JJ/MM/AAAA) |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Format de date | Remarque | Min | Max | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | integer | identifiant | 0 (0.0 %) | 0 | | | | | |
+| debut | date | | 0 (0.0 %) | 1 | AAAA-MM-JJ | | 2025-12-01 | 2026-03-10 | |
+| fin | date | | 0 (0.0 %) | 0 | JJ/MM/AAAA | | 2025-12-31 | 2026-04-20 | |
+| evenement | string | | 0 (0.0 %) | 0 | | dates dans plusieurs formats (AAAA-MM-JJ, JJ/MM/AAAA), colonne traitée comme string | | | non, 5 valeurs distinctes |
+
+Ce fichier couvre :
+- un fichier dont les colonnes `date` utilisent des formats différents (B3),
+- une colonne dont les dates mélangent deux formats : elle devient `string`, avec une remarque (B6). Elle n'est pas prise en compte dans le format de date du fichier (B2),
+- la forme stricte des dates : `2026-1-5` n'est pas une date, donc c'est une valeur invalide dans `debut` (B6),
+- un fichier sans valeur décimale (séparateur décimal `aucun`).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
