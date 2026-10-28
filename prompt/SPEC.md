@@ -439,9 +439,46 @@ Distribution, quand elle est affichée (ici pour `category_name`). Elle remplace
     Furniture : 6
 ```
 
+En-tête d'un fichier mixte (`samples/mixed_decimal.csv` pour le séparateur décimal, `samples/mixed_dates.csv` pour le format de date) :
+
+```text
+Séparateur décimal : mixte (point, virgule)
+Format de date     : mixte (AAAA-MM-JJ, JJ/MM/AAAA)
+```
+
 Séparateur tabulation :
 
 ```text
 Séparateur         : tabulation
 ```
 
+Lignes propres à une colonne. Elles apparaissent juste après `Invalides`, et seulement dans ces cas :
+- `Séparateur décimal` : colonne `float`, quand le séparateur décimal du fichier est mixte,
+- `Format de date` : colonne `date`, quand le format de date du fichier est mixte,
+- `Remarque` : colonne dont les dates mélangent plusieurs formats.
+
+```text
+[poids]
+  Type        : float
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Séparateur décimal : virgule
+  Min         : 7.75
+  Max         : 12.50
+  Moyenne     : 9.63
+
+[fin]
+  Type        : date
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Format de date : JJ/MM/AAAA
+  Plus ancienne : 2025-12-31
+  Plus récente  : 2026-04-20
+
+[evenement]
+  Type        : string
+  Manquantes  : 0 (0.0 %)
+  Invalides   : 0
+  Remarque    : dates dans plusieurs formats (AAAA-MM-JJ, JJ/MM/AAAA), colonne traitée comme string
+  Distincts   : 5
+```
