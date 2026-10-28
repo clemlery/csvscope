@@ -1,8 +1,16 @@
-"""Analyse d'une colonne : rôle et type."""
+"""Analyse d'une colonne : rôle, type et valeurs invalides."""
 
 from collections.abc import Iterable
+from datetime import date
+from decimal import Decimal
 
-from csvscope.values import DATE_FORMATS, parse_date, parse_decimal, parse_integer
+from csvscope.values import (
+    DATE_FORMATS,
+    DECIMAL_SEPARATORS,
+    parse_date,
+    parse_decimal,
+    parse_integer,
+)
 
 INTEGER = "integer"
 FLOAT = "float"
@@ -75,3 +83,41 @@ def infer_type(values: list[str], allow_comma: bool) -> str:
         return DATE if len(date_formats(values)) == 1 else STRING
 
     return STRING
+
+
+def _convert(value: str, column_type: str, allow_comma: bool) -> int | Decimal | date | None:
+    """Convertit value selon le type integer, float ou date, ou renvoie None."""
+    if column_type == INTEGER:
+        return parse_integer(value)
+    if column_type == FLOAT:
+        integer = parse_integer(value)
+        if integer is not None:
+            return Decimal(integer)
+        decimal = parse_decimal(value, allow_comma)
+        return decimal[0] if decimal is not None else None
+    parsed = parse_date(value)
+    return parsed[0] if parsed is not None else None
+
+
+def split_valid(values: list[str], column_type: str, allow_comma: bool) -> tuple[list, int]:
+    """Sépare les valeurs non manquantes valides des invalides.
+
+    Renvoie les valeurs valides converties (int pour integer, Decimal pour
+    float, date pour date, chaîne sinon) et le nombre de valeurs invalides.
+    Une colonne string ou unknown n'a jamais de valeur invalide.
+    """
+    if column_type not in (INTEGER, FLOAT, DATE):
+        return list(values), 0
+    converted = (_convert(value, column_type, allow_comma) for value in values)
+    valid = [value for value in converted if value is not None]
+    return valid, len(values) - len(valid)
+
+
+def decimal_separator(values: list[str], allow_comma: bool) -> str:
+    """Décrit le séparateur des décimaux valides : point, virgule ou mixte."""
+    found = []
+    for value in values:
+        parsed = parse_decimal(value, allow_comma)
+        if parsed is not None:
+            found.append(parsed[1])
+    return describe_mix(found, DECIMAL_SEPARATORS)

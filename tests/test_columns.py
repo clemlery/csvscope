@@ -1,3 +1,6 @@
+from datetime import date
+from decimal import Decimal
+
 import pytest
 
 from csvscope.columns import (
@@ -7,10 +10,12 @@ from csvscope.columns import (
     STRING,
     UNKNOWN,
     date_formats,
+    decimal_separator,
     describe_mix,
     infer_type,
     is_identifier,
     mixed_date_formats,
+    split_valid,
 )
 from csvscope.values import DATE_FORMATS, DECIMAL_SEPARATORS
 
@@ -145,3 +150,58 @@ def test_string():
 def test_type_does_not_depend_on_first_value_only():
     assert infer_type(["abc", "1", "2"], allow_comma=True) == INTEGER
     assert infer_type(["1", "abc", "def"], allow_comma=True) == STRING
+
+
+# Valeurs valides et invalides
+
+
+def test_split_valid_integer():
+    assert split_valid(["10", "abc", "-4", "6"], INTEGER, True) == ([10, -4, 6], 1)
+
+
+def test_split_valid_integer_refuses_decimals():
+    assert split_valid(["1", "2", "2.5"], INTEGER, True) == ([1, 2], 1)
+
+
+def test_split_valid_float_accepts_integers():
+    valid, invalid = split_valid(["2.5", "x", "1.0", "4"], FLOAT, True)
+    assert valid == [Decimal("2.5"), Decimal("1.0"), Decimal("4")]
+    assert invalid == 1
+
+
+def test_split_valid_float_with_comma():
+    valid, invalid = split_valid(["-3,5", "2", "-1,25"], FLOAT, True)
+    assert valid == [Decimal("-3.5"), Decimal("2"), Decimal("-1.25")]
+    assert invalid == 0
+
+
+def test_split_valid_float_refuses_comma_when_not_allowed():
+    valid, invalid = split_valid(["10.5", "7.25", "12,5"], FLOAT, False)
+    assert valid == [Decimal("10.5"), Decimal("7.25")]
+    assert invalid == 1
+
+
+def test_split_valid_date():
+    values = ["2026-01-10", "2026-02-30", "2026-03-15"]
+    assert split_valid(values, DATE, True) == ([date(2026, 1, 10), date(2026, 3, 15)], 1)
+
+
+@pytest.mark.parametrize("column_type", [STRING, UNKNOWN])
+def test_split_valid_never_invalid_for_string_or_unknown(column_type):
+    assert split_valid(["A1", "12"], column_type, True) == (["A1", "12"], 0)
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        (["12,5", "8,25", "10", "7,75"], "virgule"),
+        (["1.75", "1.80"], "point"),
+        (["1.5", "2,5", "3.0", "4,0"], "mixte (point, virgule)"),
+    ],
+)
+def test_decimal_separator(values, expected):
+    assert decimal_separator(values, allow_comma=True) == expected
+
+
+def test_decimal_separator_ignores_invalid_comma():
+    assert decimal_separator(["10.5", "7.25", "12,5"], allow_comma=False) == "point"
