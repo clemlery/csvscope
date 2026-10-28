@@ -10,12 +10,15 @@ from csvscope.columns import (
     STRING,
     UNKNOWN,
     date_formats,
+    date_stats,
     decimal_separator,
     describe_mix,
     infer_type,
     is_identifier,
     mixed_date_formats,
+    numeric_stats,
     split_valid,
+    string_stats,
 )
 from csvscope.values import DATE_FORMATS, DECIMAL_SEPARATORS
 
@@ -205,3 +208,65 @@ def test_decimal_separator(values, expected):
 
 def test_decimal_separator_ignores_invalid_comma():
     assert decimal_separator(["10.5", "7.25", "12,5"], allow_comma=False) == "point"
+
+
+# Statistiques
+
+
+def test_numeric_stats_integer():
+    stats = numeric_stats([28, 34, 22, 41, 30], INTEGER)
+    assert stats == {"min": 22, "max": 41, "mean": 31.0}
+    assert type(stats["min"]) is int and type(stats["max"]) is int
+
+
+def test_numeric_stats_float():
+    numbers = [Decimal("12.5"), Decimal("8.25"), Decimal("10"), Decimal("7.75")]
+    stats = numeric_stats(numbers, FLOAT)
+    assert stats == {"min": 7.75, "max": 12.5, "mean": 9.625}
+    assert type(stats["min"]) is float and type(stats["max"]) is float
+
+
+def test_numeric_stats_mean_is_not_rounded():
+    assert numeric_stats([0, 1, 1], INTEGER)["mean"] == pytest.approx(2 / 3)
+
+
+def test_numeric_stats_without_values():
+    assert numeric_stats([], INTEGER) == {"min": None, "max": None, "mean": None}
+
+
+def test_date_stats():
+    dates = [date(2026, 3, 1), date(2025, 12, 1), date(2026, 3, 10)]
+    assert date_stats(dates) == {"min": date(2025, 12, 1), "max": date(2026, 3, 10)}
+
+
+def test_date_stats_without_values():
+    assert date_stats([]) == {"min": None, "max": None}
+
+
+def test_string_stats_sorted_by_count_then_alphabetically():
+    values = ["Home Appliances", "Furniture", "Electronics", "Electronics", "Home Appliances"]
+    assert string_stats(values) == {
+        "distinct": 3,
+        "distribution": [("Electronics", 2), ("Home Appliances", 2), ("Furniture", 1)],
+    }
+
+
+def test_string_stats_without_repetition():
+    assert string_stats(["Alice", "Benoit", "Claire"]) == {"distinct": 3, "distribution": None}
+
+
+def test_string_stats_single_repeated_value():
+    assert string_stats(["bien", "bien"]) == {"distinct": 1, "distribution": [("bien", 2)]}
+
+
+def test_string_stats_with_20_distinct_values():
+    values = [f"G{i:02d}" for i in range(1, 21)] + ["G01", "G02"]
+    stats = string_stats(values)
+    assert stats["distinct"] == 20
+    assert stats["distribution"][:3] == [("G01", 2), ("G02", 2), ("G03", 1)]
+    assert len(stats["distribution"]) == 20
+
+
+def test_string_stats_with_21_distinct_values():
+    values = [f"V{i:02d}" for i in range(1, 22)] + ["V01"]
+    assert string_stats(values) == {"distinct": 21, "distribution": None}

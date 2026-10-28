@@ -1,5 +1,6 @@
-"""Analyse d'une colonne : rôle, type et valeurs invalides."""
+"""Analyse d'une colonne : rôle, type, valeurs invalides et statistiques."""
 
+from collections import Counter
 from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
@@ -21,6 +22,8 @@ UNKNOWN = "unknown"
 IDENTIFIER = "identifiant"
 IDENTIFIER_NAMES = frozenset({"id", "uuid", "identifier", "identifiant"})
 IDENTIFIER_SUFFIX = "_id"
+
+DISTRIBUTION_MAX_VALUES = 20
 
 
 def is_identifier(name: str) -> bool:
@@ -121,3 +124,37 @@ def decimal_separator(values: list[str], allow_comma: bool) -> str:
         if parsed is not None:
             found.append(parsed[1])
     return describe_mix(found, DECIMAL_SEPARATORS)
+
+
+def numeric_stats(numbers: list[int | Decimal], column_type: str) -> dict:
+    """Min, max et moyenne : min et max en int pour integer, en float pour float."""
+    if not numbers:
+        return {"min": None, "max": None, "mean": None}
+    convert = int if column_type == INTEGER else float
+    total = sum(Decimal(number) for number in numbers)
+    return {
+        "min": convert(min(numbers)),
+        "max": convert(max(numbers)),
+        "mean": float(total / len(numbers)),
+    }
+
+
+def date_stats(dates: list[date]) -> dict:
+    """Date la plus ancienne et date la plus récente."""
+    if not dates:
+        return {"min": None, "max": None}
+    return {"min": min(dates), "max": max(dates)}
+
+
+def string_stats(values: list[str]) -> dict:
+    """Nombre de valeurs distinctes et, si elle s'applique, la distribution.
+
+    La distribution est donnée s'il y a au plus DISTRIBUTION_MAX_VALUES
+    valeurs distinctes et qu'au moins une valeur est répétée. Elle est triée
+    par nombre d'occurrences décroissant, puis par ordre alphabétique.
+    """
+    counts = Counter(values)
+    distribution = None
+    if len(counts) <= DISTRIBUTION_MAX_VALUES and any(n > 1 for n in counts.values()):
+        distribution = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return {"distinct": len(counts), "distribution": distribution}
