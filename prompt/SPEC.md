@@ -203,6 +203,24 @@ Fichier UTF-8 commençant par un BOM (`EF BB BF`).
 
 Ce fichier couvre : le retrait du BOM. Le nom de la première colonne est `id`, pas `﻿id`, donc elle est reconnue comme identifiant (B12).
 
+## samples/single_column.csv
+
+### Fichier
+| Clé | Valeur |
+| --- | --- |
+| lignes | 3 |
+| colonnes | 1 |
+| séparateur | `,` |
+| séparateur décimal | aucun |
+| format de date | aucun |
+
+### Colonnes
+| Colonne | Type | Rôle | Manquantes | Invalides | Min | Max | Moyenne | Distribution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| valeur | integer | | 0 (0.0 %) | 0 | 10 | 30 | 20.00 | |
+
+Ce fichier couvre : aucun séparateur ne donne plus d'une colonne, donc on retient `,` par défaut (B11).
+
 # Rendu texte
 
 ## Rendu texte attendu pour samples/clean.csv
