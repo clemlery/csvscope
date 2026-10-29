@@ -1,5 +1,6 @@
-"""Rendu texte du rapport. Seul module qui met les valeurs en forme."""
+"""Rendu texte et JSON du rapport. Seul module qui met les valeurs en forme."""
 
+import json
 from datetime import date
 
 from csvscope.columns import DATE, FLOAT, INTEGER, STRING, describe_mix
@@ -128,3 +129,30 @@ def render_report(file_info: dict, columns: list[dict]) -> str:
         lines.append("")
         lines.extend(render_column(column, file_info))
     return "\n".join(lines)
+
+
+def json_number(value: int | float | None, column_type: str) -> int | float | None:
+    """Min ou max en JSON : entier pour integer, arrondi à 2 décimales pour float."""
+    if value is None or column_type == INTEGER:
+        return value
+    return float(round_half_up(value, 2))
+
+
+def json_column(column: dict) -> dict:
+    """Dictionnaire d'une colonne prêt pour JSON : nombres arrondis, dates en chaînes."""
+    result = dict(column)
+    if column["type"] in (INTEGER, FLOAT):
+        result["min"] = json_number(column["min"], column["type"])
+        result["max"] = json_number(column["max"], column["type"])
+        if column["mean"] is not None:
+            result["mean"] = float(round_half_up(column["mean"], 2))
+    elif column["type"] == DATE and column["min"] is not None:
+        result["min"] = format_date(column["min"])
+        result["max"] = format_date(column["max"])
+    return result
+
+
+def render_json(file_info: dict, columns: list[dict]) -> str:
+    """Rapport complet en JSON : le fichier, puis la liste des colonnes."""
+    report = {"file": file_info, "columns": [json_column(column) for column in columns]}
+    return json.dumps(report, ensure_ascii=False, indent=2)

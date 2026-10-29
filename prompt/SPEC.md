@@ -482,3 +482,119 @@ Lignes propres à une colonne. Elles apparaissent juste après `Invalides`, et s
   Remarque    : dates dans plusieurs formats (AAAA-MM-JJ, JJ/MM/AAAA), colonne traitée comme string
   Distincts   : 5
 ```
+
+# Rendu JSON
+
+Avec l'option `--format json`, le rapport est écrit en JSON au lieu du texte brut (`--format text`, le défaut). Les cas d'erreur ne changent pas : message texte sur la sortie d'erreur, code de sortie 1, rien sur la sortie standard.
+
+Règles :
+- Un objet avec deux clés : `file` (le dictionnaire du fichier) et `columns` (la liste des dictionnaires de colonnes, dans l'ordre du fichier).
+- Les clés sont les noms internes de l'analyse, non traduits. Toutes les clés sont présentes pour chaque colonne ; une information absente vaut `null`.
+- Nombres écrits en nombres JSON, pas en chaînes : min et max d'une colonne `integer` en entiers, min et max d'une colonne `float` et moyenne arrondis à 2 décimales (au demi supérieur), taux de manquantes à une décimale.
+- JSON n'a pas de type date : les dates sont des chaînes `AAAA-MM-JJ` (ISO 8601).
+- Le séparateur est écrit tel quel (la tabulation donne `"\t"`).
+- `distribution` : liste de paires `[valeur, occurrences]`, dans l'ordre du rendu texte. `mixed_date_formats` : liste des formats, vide si la remarque ne s'applique pas.
+- Indentation de 2 espaces, caractères non ASCII écrits tels quels.
+
+## Rendu JSON attendu pour samples/clean.csv
+
+```json
+{
+  "file": {
+    "path": "samples/clean.csv",
+    "row_count": 5,
+    "column_count": 5,
+    "separator": ",",
+    "decimal_separator": "point",
+    "date_format": "AAAA-MM-JJ"
+  },
+  "columns": [
+    {
+      "name": "id",
+      "type": "integer",
+      "role": "identifiant",
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": null,
+      "max": null,
+      "mean": null,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "nom",
+      "type": "string",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": null,
+      "max": null,
+      "mean": null,
+      "distinct": 5,
+      "distribution": null
+    },
+    {
+      "name": "age",
+      "type": "integer",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": 22,
+      "max": 41,
+      "mean": 31.0,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "score",
+      "type": "float",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": "point",
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": 9.4,
+      "max": 18.9,
+      "mean": 14.54,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "date_inscription",
+      "type": "date",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": "AAAA-MM-JJ",
+      "mixed_date_formats": [],
+      "min": "2026-01-15",
+      "max": "2026-05-30",
+      "mean": null,
+      "distinct": null,
+      "distribution": null
+    }
+  ]
+}
+```
+
+Distribution (ici pour `category_name` de `samples/product_categories.csv`) :
+
+```json
+"distribution": [["Electronics", 7], ["Home Appliances", 7], ["Furniture", 6]]
+```

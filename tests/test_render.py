@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from pathlib import Path
 
@@ -11,8 +12,11 @@ from csvscope.render import (
     format_number,
     format_remark,
     format_separator,
+    json_column,
+    json_number,
     render_column,
     render_file,
+    render_json,
     render_report,
 )
 
@@ -60,6 +64,100 @@ Format de date     : AAAA-MM-JJ
   Invalides   : 0
   Plus ancienne : 2026-01-15
   Plus récente  : 2026-05-30"""
+
+CLEAN_JSON = """\
+{
+  "file": {
+    "path": "samples/clean.csv",
+    "row_count": 5,
+    "column_count": 5,
+    "separator": ",",
+    "decimal_separator": "point",
+    "date_format": "AAAA-MM-JJ"
+  },
+  "columns": [
+    {
+      "name": "id",
+      "type": "integer",
+      "role": "identifiant",
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": null,
+      "max": null,
+      "mean": null,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "nom",
+      "type": "string",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": null,
+      "max": null,
+      "mean": null,
+      "distinct": 5,
+      "distribution": null
+    },
+    {
+      "name": "age",
+      "type": "integer",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": 22,
+      "max": 41,
+      "mean": 31.0,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "score",
+      "type": "float",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": "point",
+      "date_format": null,
+      "mixed_date_formats": [],
+      "min": 9.4,
+      "max": 18.9,
+      "mean": 14.54,
+      "distinct": null,
+      "distribution": null
+    },
+    {
+      "name": "date_inscription",
+      "type": "date",
+      "role": null,
+      "missing": 0,
+      "missing_rate": 0.0,
+      "invalid": 0,
+      "decimal_separator": null,
+      "date_format": "AAAA-MM-JJ",
+      "mixed_date_formats": [],
+      "min": "2026-01-15",
+      "max": "2026-05-30",
+      "mean": null,
+      "distinct": null,
+      "distribution": null
+    }
+  ]
+}"""
 
 
 @pytest.fixture
@@ -224,3 +322,52 @@ def test_no_markdown_in_reports(at_root):
 
 def test_full_report_of_clean_file(at_root):
     assert render_report(*analyze("clean.csv")) == CLEAN_REPORT
+
+
+# Rendu JSON
+
+
+@pytest.mark.parametrize(
+    ("value", "column_type", "expected"),
+    [
+        (None, "float", None),
+        (-4, "integer", -4),
+        (9.4, "float", 9.4),
+        (2.675, "float", 2.68),
+    ],
+)
+def test_json_number(value, column_type, expected):
+    assert json_number(value, column_type) == expected
+
+
+def test_json_mean_rounded_half_up(at_root):
+    file_info, columns = analyze("mixed_decimal.csv")
+    poids = next(c for c in columns if c["name"] == "poids")
+    assert json_column(poids)["mean"] == 9.63
+
+
+def test_json_dates_are_iso_strings(at_root):
+    file_info, columns = analyze("mixed_dates.csv")
+    fin = json_column(next(c for c in columns if c["name"] == "fin"))
+    assert (fin["min"], fin["max"]) == ("2025-12-31", "2026-04-20")
+
+
+def test_json_distribution_pairs(at_root):
+    report = json.loads(render_json(*analyze("product_categories.csv")))
+    column = next(c for c in report["columns"] if c["name"] == "category_name")
+    assert column["distribution"] == [["Electronics", 7], ["Home Appliances", 7], ["Furniture", 6]]
+
+
+def test_json_tab_separator_kept_raw(at_root):
+    assert json.loads(render_json(*analyze("tabulation.csv")))["file"]["separator"] == "\t"
+
+
+def test_json_reports_are_valid(at_root):
+    names = sorted(p.name for p in (ROOT / "samples").glob("*.csv") if p.name != "empty.csv")
+    for name in names:
+        report = json.loads(render_json(*analyze(name)))
+        assert set(report) == {"file", "columns"}, name
+
+
+def test_full_json_report_of_clean_file(at_root):
+    assert render_json(*analyze("clean.csv")) == CLEAN_JSON

@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -38,6 +39,32 @@ def test_missing_file(capsys):
     assert captured.out == ""
     assert captured.err == "Erreur : fichier introuvable : samples/inexistant.csv\n"
     assert not Path("samples/inexistant.csv").exists()
+
+
+def test_json_report_on_stdout(capsys):
+    assert main(["samples/clean.csv", "--format", "json"]) == 0
+    captured = capsys.readouterr()
+    assert json.loads(captured.out)["file"]["path"] == "samples/clean.csv"
+    assert captured.err == ""
+
+
+def test_explicit_text_format(capsys):
+    assert main(["--format", "text", "samples/clean.csv"]) == 0
+    assert capsys.readouterr().out.startswith("Fichier            : samples/clean.csv\n")
+
+
+def test_json_format_errors_stay_text(capsys):
+    assert main(["samples/empty.csv", "--format", "json"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "Erreur : fichier vide : samples/empty.csv\n"
+
+
+def test_unknown_format_is_rejected(capsys):
+    with pytest.raises(SystemExit) as error:
+        main(["samples/clean.csv", "--format", "xml"])
+    assert error.value.code == 2
+    assert capsys.readouterr().out == ""
 
 
 def run_module(*args):
