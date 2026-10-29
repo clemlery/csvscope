@@ -6,13 +6,14 @@ Une CLI qui affiche un rapport en texte brut sur un fichier CSV :
 
 ```
 csvscope <fichier>
+csvscope <fichier> --format json
 ```
 
 Le rapport décrit le fichier (lignes, colonnes, séparateur, séparateur décimal, format de date). Pour chaque colonne, il donne le type inféré (`integer`, `float`, `date`, `string`, `unknown`), le rôle éventuel (`identifiant`), les valeurs manquantes et invalides, et des statistiques selon le type.
 
 ## Documentation
 - `prompt/PROMPT.md` : objectif, règles et contraintes.
-- `prompt/SPEC.md` : résultats attendus pour chaque fichier de `samples/`, et mise en page du rapport.
+- `prompt/SPEC.md` : résultats attendus pour chaque fichier de `samples/`, et mise en page du rapport (texte et JSON).
 
 ## Exemple : `samples/clean.csv`
 | Colonne | Type | Rôle | Manquantes |
