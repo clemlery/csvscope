@@ -5,7 +5,9 @@ import sys
 
 from csvscope.analysis import analyze_file
 from csvscope.reading import EmptyFileError
-from csvscope.render import render_report
+from csvscope.render import render_json, render_report
+
+RENDERERS = {"text": render_report, "json": render_json}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -18,7 +20,11 @@ def main(argv: list[str] | None = None) -> int:
         prog="csvscope", description="Affiche un rapport en texte brut sur un fichier CSV."
     )
     parser.add_argument("fichier", help="chemin du fichier CSV")
-    path = parser.parse_args(argv).fichier
+    parser.add_argument(
+        "--format", choices=RENDERERS, default="text", help="format du rapport (défaut : text)"
+    )
+    args = parser.parse_args(argv)
+    path = args.fichier
 
     try:
         file_info, columns = analyze_file(path)
@@ -29,5 +35,5 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Erreur : fichier vide : {path}", file=sys.stderr)
         return 1
 
-    print(render_report(file_info, columns))
+    print(RENDERERS[args.format](file_info, columns))
     return 0
